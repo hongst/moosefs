@@ -2710,11 +2710,7 @@ static inline void fsnodes_geteattr_recursive(fsnode *node,uint8_t gmode,uint32_
 
 #endif
 
-#if VERSHEX>=0x010700
 static inline void fsnodes_setgoal_recursive(fsnode *node,uint32_t ts,uint32_t uid,uint8_t quota,uint8_t goal,uint8_t smode,uint32_t *sinodes,uint32_t *ncinodes,uint32_t *nsinodes,uint32_t *qeinodes) {
-#else
-static inline void fsnodes_setgoal_recursive(fsnode *node,uint32_t ts,uint32_t uid,uint8_t goal,uint8_t smode,uint32_t *sinodes,uint32_t *ncinodes,uint32_t *nsinodes) {
-#endif
 	fsedge *e;
 	uint8_t set;
 
@@ -2742,16 +2738,12 @@ static inline void fsnodes_setgoal_recursive(fsnode *node,uint32_t ts,uint32_t u
 			}
 			if (set) {
 				if (node->type!=TYPE_DIRECTORY) {
-#if VERSHEX>=0x010700
 					if (quota && goal>node->goal) {
 						(*qeinodes)++;
 					} else {
-#endif
 						fsnodes_changefilegoal(node,goal);
 						(*sinodes)++;
-#if VERSHEX>=0x010700
 					}
-#endif
 				} else {
 					node->goal=goal;
 					(*sinodes)++;
@@ -2769,17 +2761,11 @@ static inline void fsnodes_setgoal_recursive(fsnode *node,uint32_t ts,uint32_t u
 			}
 		}
 		if (node->type==TYPE_DIRECTORY && (smode&SMODE_RMASK)) {
-#if VERSHEX>=0x010700
 			if (quota==0 && node->data.ddata.quota && node->data.ddata.quota->exceeded) {
 				quota=1;
 			}
-#endif
 			for (e = node->data.ddata.children ; e ; e=e->nextchild) {
-#if VERSHEX>=0x010700
 				fsnodes_setgoal_recursive(e->child,ts,uid,quota,goal,smode,sinodes,ncinodes,nsinodes,qeinodes);
-#else
-				fsnodes_setgoal_recursive(e->child,ts,uid,goal,smode,sinodes,ncinodes,nsinodes);
-#endif
 			}
 		}
 	}
@@ -5722,16 +5708,10 @@ uint8_t fs_geteattr(uint32_t rootinode,uint8_t sesflags,uint32_t inode,uint8_t g
 #endif
 
 #ifndef METARESTORE
-#if VERSHEX>=0x010700
 uint8_t fs_setgoal(uint32_t rootinode,uint8_t sesflags,uint32_t inode,uint32_t uid,uint8_t goal,uint8_t smode,uint32_t *sinodes,uint32_t *ncinodes,uint32_t *nsinodes,uint32_t *qeinodes) {
-#else
-uint8_t fs_setgoal(uint32_t rootinode,uint8_t sesflags,uint32_t inode,uint32_t uid,uint8_t goal,uint8_t smode,uint32_t *sinodes,uint32_t *ncinodes,uint32_t *nsinodes) {
-#endif
 	uint32_t ts;
 	fsnode *rn;
-#if VERSHEX>=0x010700
 	uint8_t quota;
-#endif
 	fsnode *p;
 
 	(void)sesflags;
@@ -5739,9 +5719,7 @@ uint8_t fs_setgoal(uint32_t rootinode,uint8_t sesflags,uint32_t inode,uint32_t u
 	*sinodes = 0;
 	*ncinodes = 0;
 	*nsinodes = 0;
-#if VERSHEX>=0x010700
 	*qeinodes = 0;
-#endif
 	if (!SMODE_ISVALID(smode) || goal>9 || goal<1) {
 		return ERROR_EINVAL;
 	}
@@ -5778,45 +5756,26 @@ uint8_t fs_setgoal(uint32_t rootinode,uint8_t sesflags,uint32_t inode,uint32_t u
 		return ERROR_EPERM;
 	}
 
-#if VERSHEX>=0x010700
 	quota = fsnodes_test_quota(p);
-#endif
-#if VERSHEX>=0x010700
 	fsnodes_setgoal_recursive(p,ts,uid,quota,goal,smode,sinodes,ncinodes,nsinodes,qeinodes);
-#else
-	fsnodes_setgoal_recursive(p,ts,uid,goal,smode,sinodes,ncinodes,nsinodes);
-#endif
 	if ((smode&SMODE_RMASK)==0 && *nsinodes>0 && *sinodes==0 && *ncinodes==0) {
 		return ERROR_EPERM;
 	}
 
-#if VERSHEX>=0x010700
 	changelog(metaversion++,"%"PRIu32"|SETGOAL(%"PRIu32",%"PRIu32",%"PRIu8",%"PRIu8"):%"PRIu32",%"PRIu32",%"PRIu32",%"PRIu32,ts,inode,uid,goal,smode,*sinodes,*ncinodes,*nsinodes,*qeinodes);
-#else
-	changelog(metaversion++,"%"PRIu32"|SETGOAL(%"PRIu32",%"PRIu32",%"PRIu8",%"PRIu8"):%"PRIu32",%"PRIu32",%"PRIu32,ts,inode,uid,goal,smode,*sinodes,*ncinodes,*nsinodes);
-#endif
 	return STATUS_OK;
 }
 #endif
 
-#if VERSHEX>=0x010700
 uint8_t fs_log_setgoal(uint32_t ts,uint32_t inode,uint32_t uid,uint8_t goal,uint8_t smode,uint32_t sinodes,uint32_t ncinodes,uint32_t nsinodes,uint32_t qeinodes) {
 	uint32_t si,nci,nsi,qei;
-#else
-uint8_t fs_log_setgoal(uint32_t ts,uint32_t inode,uint32_t uid,uint8_t goal,uint8_t smode,uint32_t sinodes,uint32_t ncinodes,uint32_t nsinodes) {
-	uint32_t si,nci,nsi;
-#endif
-#if VERSHEX>=0x010700
 	uint8_t quota;
-#endif
 	fsnode *p;
 
 	si = 0;
 	nci = 0;
 	nsi = 0;
-#if VERSHEX>=0x010700
 	qei = 0;
-#endif
 	if (!SMODE_ISVALID(smode) || goal>9 || goal<1) {
 		return ERROR_EINVAL;
 	}
@@ -5828,21 +5787,11 @@ uint8_t fs_log_setgoal(uint32_t ts,uint32_t inode,uint32_t uid,uint8_t goal,uint
 		return ERROR_EPERM;
 	}
 
-#if VERSHEX>=0x010700
 	quota = fsnodes_test_quota(p);
-#endif
-#if VERSHEX>=0x010700
 	fsnodes_setgoal_recursive(p,ts,uid,quota,goal,smode,&si,&nci,&nsi,&qei);
-#else
-	fsnodes_setgoal_recursive(p,ts,uid,goal,smode,&si,&nci,&nsi);
-#endif
 
 	metaversion++;
-#if VERSHEX>=0x010700
 	if (sinodes!=si || ncinodes!=nci || nsinodes!=nsi || (qeinodes!=qei && qeinodes!=UINT32_C(0xFFFFFFFF))) {
-#else
-	if (sinodes!=si || ncinodes!=nci || nsinodes!=nsi) {
-#endif
 		return ERROR_MISMATCH;
 	}
 	return STATUS_OK;
@@ -6373,7 +6322,6 @@ uint8_t fs_quotacontrol(uint32_t rootinode,uint8_t sesflags,uint32_t inode,uint8
 	*curlength = psr->length;
 	*cursize = psr->size;
 	*currealsize = psr->realsize;
-#if VERSHEX>=0x010700
 	if (chg) {
 		if (qn) {
 			changelog(metaversion++,"%"PRIu32"|QUOTA(%"PRIu32",%"PRIu8",%"PRIu8",%"PRIu32",%"PRIu32",%"PRIu32",%"PRIu64",%"PRIu64",%"PRIu64",%"PRIu64",%"PRIu64",%"PRIu64")",main_time(),inode,qn->exceeded,qn->flags,qn->stimestamp,qn->sinodes,qn->hinodes,qn->slength,qn->hlength,qn->ssize,qn->hsize,qn->srealsize,qn->hrealsize);
@@ -6381,18 +6329,13 @@ uint8_t fs_quotacontrol(uint32_t rootinode,uint8_t sesflags,uint32_t inode,uint8
 			changelog(metaversion++,"%"PRIu32"|QUOTA(%"PRIu32",0,0,0,0,0,0,0,0,0,0,0)",main_time(),inode);
 		}
 	}
-#else
-	(void)chg;
-#endif
 	return STATUS_OK;
 }
 #endif
 
 uint8_t fs_log_quota(uint32_t ts,uint32_t inode,uint8_t exceeded,uint8_t flags,uint32_t stimestamp,uint32_t sinodes,uint32_t hinodes,uint64_t slength,uint64_t hlength,uint64_t ssize,uint64_t hsize,uint64_t srealsize,uint64_t hrealsize) {
 	fsnode *p;
-#if VERSHEX>=0x010700
 	quotanode *qn;
-#endif
 
 	(void)ts;
 	p = fsnodes_id_to_node(inode);
@@ -6402,7 +6345,6 @@ uint8_t fs_log_quota(uint32_t ts,uint32_t inode,uint8_t exceeded,uint8_t flags,u
 	if (p->type!=TYPE_DIRECTORY) {
 		return ERROR_EPERM;
 	}
-#if VERSHEX>=0x010700
 	qn = p->data.ddata.quota;
 	if (flags==0) {
 		if (qn!=NULL) {
@@ -6424,19 +6366,6 @@ uint8_t fs_log_quota(uint32_t ts,uint32_t inode,uint8_t exceeded,uint8_t flags,u
 		qn->hsize = hsize;
 		qn->hrealsize = hrealsize;
 	}
-#else
-	(void)flags;
-	(void)exceeded;
-	(void)stimestamp;
-	(void)sinodes;
-	(void)slength;
-	(void)ssize;
-	(void)srealsize;
-	(void)hinodes;
-	(void)hlength;
-	(void)hsize;
-	(void)hrealsize;
-#endif
 	metaversion++;
 	return STATUS_OK;
 }
@@ -8791,19 +8720,11 @@ int fs_emergency_storeall(const char *fname) {
 	if (fd==NULL) {
 		return -1;
 	}
-#if VERSHEX>=0x010700
 	if (fwrite(MFSSIGNATURE "M 1.7",1,8,fd)!=(size_t)8) {
 		syslog(LOG_NOTICE,"fwrite error");
 	} else {
 		fs_store(fd,0x17);
 	}
-#else
-	if (fwrite(MFSSIGNATURE "M 1.5",1,8,fd)!=(size_t)8) {
-		syslog(LOG_NOTICE,"fwrite error");
-	} else {
-		fs_store(fd,0x15);
-	}
-#endif
 	if (ferror(fd)!=0) {
 		fclose(fd);
 		return -1;
@@ -8894,19 +8815,11 @@ int fs_storeall(int bg) {
 			}
 			return 0;
 		}
-#if VERSHEX>=0x010700
 		if (fwrite(MFSSIGNATURE "M 1.7",1,8,fd)!=(size_t)8) {
 			syslog(LOG_NOTICE,"fwrite error");
 		} else {
 			fs_store(fd,0x17);
 		}
-#else
-		if (fwrite(MFSSIGNATURE "M 1.5",1,8,fd)!=(size_t)8) {
-			syslog(LOG_NOTICE,"fwrite error");
-		} else {
-			fs_store(fd,0x15);
-		}
-#endif
 		if (ferror(fd)!=0) {
 			syslog(LOG_ERR,"can't write metadata");
 			fclose(fd);
@@ -8966,19 +8879,11 @@ void fs_log_storeall(const char *fname) {
 		printf("can't open metadata file\n");
 		return;
 	}
-#if VERSHEX>=0x010700
 	if (fwrite(MFSSIGNATURE "M 1.7",1,8,fd)!=(size_t)8) {
 		syslog(LOG_NOTICE,"fwrite error");
 	} else {
 		fs_store(fd,0x17);
 	}
-#else
-	if (fwrite(MFSSIGNATURE "M 1.5",1,8,fd)!=(size_t)8) {
-		syslog(LOG_NOTICE,"fwrite error");
-	} else {
-		fs_store(fd,0x15);
-	}
-#endif
 	if (ferror(fd)!=0) {
 		printf("can't write metadata\n");
 	}
@@ -9294,9 +9199,7 @@ void fs_cs_disconnected(void) {
 }
 
 void fs_reload(void) {
-#if VERSHEX>=0x010700
 	QuotaTimeLimit = cfg_getuint32("QUOTA_TIME_LIMIT",7*86400);
-#endif
 	BackMetaCopies = cfg_getuint32("BACK_META_KEEP_PREVIOUS",1);
 	if (BackMetaCopies>99) {
 		BackMetaCopies=99;
@@ -9315,11 +9218,7 @@ int fs_init(void) {
 		return -1;
 	}
 	fprintf(stderr,"metadata file has been loaded\n");
-#if VERSHEX>=0x010700
 	QuotaTimeLimit = cfg_getuint32("QUOTA_TIME_LIMIT",7*86400);
-#else
-	QuotaTimeLimit = 7*86400;	// for tests
-#endif
 	BackMetaCopies = cfg_getuint32("BACK_META_KEEP_PREVIOUS",1);
 	if (BackMetaCopies>99) {
 		BackMetaCopies=99;

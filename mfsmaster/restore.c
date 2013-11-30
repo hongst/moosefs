@@ -464,11 +464,7 @@ int do_seteattr(const char *filename,uint64_t lv,uint32_t ts,char *ptr) {
 }
 
 int do_setgoal(const char *filename,uint64_t lv,uint32_t ts,char *ptr) {
-#if VERSHEX>=0x010700
 	uint32_t inode,uid,ci,nci,npi,qei;
-#else
-	uint32_t inode,uid,ci,nci,npi;
-#endif
 	uint8_t goal,smode;
 	EAT(ptr,filename,lv,'(');
 	GETU32(inode,ptr);
@@ -485,7 +481,6 @@ int do_setgoal(const char *filename,uint64_t lv,uint32_t ts,char *ptr) {
 	GETU32(nci,ptr);
 	EAT(ptr,filename,lv,',');
 	GETU32(npi,ptr);
-#if VERSHEX>=0x010700
 	if (*ptr==',') {
 		EAT(ptr,filename,lv,',');
 		GETU32(qei,ptr);
@@ -493,9 +488,6 @@ int do_setgoal(const char *filename,uint64_t lv,uint32_t ts,char *ptr) {
 		qei = UINT32_C(0xFFFFFFFF);
 	}
 	return fs_log_setgoal(ts,inode,uid,goal,smode,ci,nci,npi,qei);
-#else
-	return fs_log_setgoal(ts,inode,uid,goal,smode,ci,nci,npi);
-#endif
 }
 
 int do_setpath(const char *filename,uint64_t lv,uint32_t ts,char *ptr) {

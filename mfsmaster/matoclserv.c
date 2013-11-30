@@ -2736,11 +2736,7 @@ void matoclserv_fuse_setgoal(matoclserventry *eptr,const uint8_t *data,uint32_t 
 	uint32_t inode,uid;
 	uint32_t msgid;
 	uint8_t goal,smode;
-#if VERSHEX>=0x010700
 	uint32_t changed,notchanged,notpermitted,quotaexceeded;
-#else
-	uint32_t changed,notchanged,notpermitted;
-#endif
 	uint8_t *ptr;
 	uint8_t status;
 	if (length!=14) {
@@ -2778,11 +2774,7 @@ void matoclserv_fuse_setgoal(matoclserventry *eptr,const uint8_t *data,uint32_t 
 		status = ERROR_EINVAL;
 	}
 	if (status==STATUS_OK) {
-#if VERSHEX>=0x010700
 		status = fs_setgoal(eptr->sesdata->rootinode,eptr->sesdata->sesflags,inode,uid,goal,smode,&changed,&notchanged,&notpermitted,&quotaexceeded);
-#else
-		status = fs_setgoal(eptr->sesdata->rootinode,eptr->sesdata->sesflags,inode,uid,goal,smode,&changed,&notchanged,&notpermitted);
-#endif
 	}
 	if (eptr->version>=0x010700) {
 		ptr = matoclserv_createpacket(eptr,MATOCL_FUSE_SETGOAL,(status!=STATUS_OK)?5:20);
@@ -2797,11 +2789,7 @@ void matoclserv_fuse_setgoal(matoclserventry *eptr,const uint8_t *data,uint32_t 
 		put32bit(&ptr,notchanged);
 		put32bit(&ptr,notpermitted);
 		if (eptr->version>=0x010700) {
-#if VERSHEX>=0x010700
 			put32bit(&ptr,quotaexceeded);
-#else
-			put32bit(&ptr,0);
-#endif
 		}
 	}
 }

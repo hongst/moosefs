@@ -2,9 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.60)
-dnl AC_PREREQ(2.60)
-AC_INIT([MFS], [1.6.27], [bugs@moosefs.com])
-dnl AC_INIT([MFS], [1.7.0], [bugs@moosefs.com])
+AC_INIT([MFS], [1.7.0], [bugs@moosefs.com])
 dnl AC_CONFIG_SRCDIR([MFSCommunication.h])
 AC_CONFIG_HEADER([config.h])
 AC_CANONICAL_TARGET

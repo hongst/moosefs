@@ -2444,11 +2444,9 @@ int main(int argc,char **argv) {
 			SYMLINK("mfsgeteattr")
 			SYMLINK("mfsseteattr")
 			SYMLINK("mfsdeleattr")
-#if VERSHEX>=0x010700
 			SYMLINK("mfsgetquota")
 			SYMLINK("mfssetquota")
 			SYMLINK("mfsdelquota")
-#endif
 			// deprecated tools:
 			SYMLINK("mfsrgetgoal")
 			SYMLINK("mfsrsetgoal")
@@ -2462,9 +2460,7 @@ int main(int argc,char **argv) {
 			fprintf(stderr,"\tmfscheckfile\n\tmfsfileinfo\n\tmfsappendchunks\n\tmfsdirinfo\n\tmfsfilerepair\n");
 			fprintf(stderr,"\tmfsmakesnapshot\n");
 			fprintf(stderr,"\tmfsgeteattr\n\tmfsseteattr\n\tmfsdeleattr\n");
-#if VERSHEX>=0x010700
 			fprintf(stderr,"\tmfsgetquota\n\tmfssetquota\n\tmfsdelquota\n");
-#endif
 			fprintf(stderr,"\ndeprecated tools:\n");
 			fprintf(stderr,"\tmfsrgetgoal = mfsgetgoal -r\n");
 			fprintf(stderr,"\tmfsrsetgoal = mfssetgoal -r\n");

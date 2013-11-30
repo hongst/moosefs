@@ -1,5 +1,5 @@
 This file contains some important notes on upgrade process.
-
+ 
  * Upgrading from 1.5.x to 1.6.x:
 	1. Upgrade and restart mfsmaster.
 	2. Upgrade and restart chunkservers.
@@ -17,3 +17,14 @@ This file contains some important notes on upgrade process.
 
 	Upgrade and restart mfsmaster before upgrading any chunkserver.
 
+ * Upgrading from 1.6.x to 1.7.x:
+  1. Upgrade metalogger 
+	2. Upgrade and restart shadow master
+	3. Upgrade and restart chunkservers
+	4. Upgrade mfs clients, remount MooseFS trees.
+	5. Upgrade and restart master
+
+	mfsmaster and mfsmetarestore can read metadata and changelogs from 1.6.x,
+  but not the opposite.
+
+  mfstools and mfsmount 1.7.x can work well with MooseFS 1.6.x (excluding quota).
