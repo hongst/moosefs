@@ -129,6 +129,8 @@ static uint32_t srcip=0;
 
 static uint8_t fterm;
 
+uint8_t sesflags;
+
 void fs_getmasterlocation(uint8_t loc[14]) {
 	put32bit(&loc,masterip);
 	put16bit(&loc,masterport);
@@ -733,7 +735,6 @@ int fs_connect(uint8_t oninit,struct connect_args_t *cargs) {
 	const uint8_t *rptr;
 	uint8_t havepassword;
 	uint32_t pleng,ileng;
-	uint8_t sesflags;
 	uint32_t rootuid,rootgid,mapalluid,mapallgid;
 	uint8_t mingoal,maxgoal;
 	uint32_t mintrashtime,maxtrashtime;
@@ -1720,11 +1721,16 @@ uint8_t fs_lookup(uint32_t parent,uint8_t nleng,const uint8_t *name,uint32_t uid
 }
 
 uint8_t fs_getattr(uint32_t inode,uint32_t uid,uint32_t gid,uint8_t attr[35]) {
-	uint8_t *wptr;
+	uint8_t *wptr, *ptr;
 	const uint8_t *rptr;
 	uint32_t i;
 	uint8_t ret;
 	if (dcache_getattr(inode,attr)) {
+	    if (sesflags&SESFLAG_MAPALL) {
+	        ptr = &attr[3];
+	        put32bit(&ptr,uid);
+	        put32bit(&ptr,gid);
+	    }
 		return STATUS_OK;
 	}
 	threc *rec = fs_get_my_threc();
