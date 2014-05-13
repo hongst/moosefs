@@ -132,13 +132,14 @@ typedef struct matoclserventry {
 	uint8_t passwordrnd[32];
 	session *sesdata;
 	chunklist *chunkdelayedops;
-	uint32_t cacheddirs;
+//	uint32_t cacheddirs;
 //	filelist *openedfiles;
 
 	struct matoclserventry *next;
 } matoclserventry;
 
 // directories in external caches
+/*
 typedef struct dirincache {
 	struct matoclserventry *eptr;
 	uint32_t dirinode;
@@ -147,6 +148,7 @@ typedef struct dirincache {
 } dirincache;
 
 static dirincache **dirinodehash=NULL;
+*/
 static session *sessionshead=NULL;
 static matoclserventry *matoclservhead=NULL;
 static matoclserventry *writable[MFSMAXFILES+1];
@@ -180,7 +182,7 @@ void matoclserv_stats(uint64_t stats[5]) {
 }
 
 // cache notification routines
-
+/*
 static inline void matoclserv_dircache_init(void) {
 	dirinodehash = (dirincache**)malloc(sizeof(dirincache*)*DIRINODE_HASH_SIZE);
 	memset(dirinodehash, 0, sizeof(dirincache*)*DIRINODE_HASH_SIZE);
@@ -264,7 +266,7 @@ static inline void matoclserv_show_notification_dirs(void) {
 		}
 	}
 }
-
+*/
 /* new registration procedure */
 session* matoclserv_new_session(uint8_t newsession,uint8_t nonewid) {
 	session *asesdata;
@@ -1123,7 +1125,7 @@ void matoclserv_mlog_list(matoclserventry *eptr,const uint8_t *data,uint32_t len
 	ptr = matoclserv_createpacket(eptr,MATOCL_MLOG_LIST,matomlserv_mloglist_size());
 	matomlserv_mloglist_data(ptr);
 }
-
+/*
 void matoclserv_notify_dir(uint32_t dirinode);
 
 void matoclserv_notify_attr(uint32_t inode,const uint8_t *pattr,matoclserventry *eptr) {
@@ -1179,7 +1181,7 @@ void matoclserv_notify_dir(uint32_t dirinode) {
 		}
 	}
 }
-
+*/
 
 void matoclserv_fuse_register(matoclserventry *eptr,const uint8_t *data,uint32_t length) {
 	const uint8_t *rptr;
@@ -2291,13 +2293,13 @@ void matoclserv_fuse_getdir(matoclserventry *eptr,const uint8_t *data,uint32_t l
 		put8bit(&ptr,status);
 	} else {
 		fs_readdir_data(eptr->sesdata->rootinode,eptr->sesdata->sesflags,uid,gid,auid,agid,flags,custom,ptr);
-		if (flags&GETDIR_FLAG_DIRCACHE) {
+/*		if (flags&GETDIR_FLAG_DIRCACHE) {
 			if (inode==MFS_ROOT_ID) {
 				matoclserv_notify_add_dir(eptr,eptr->sesdata->rootinode);
 			} else {
 				matoclserv_notify_add_dir(eptr,inode);
 			}
-		}
+		}*/
 	}
 	if (eptr->sesdata) {
 		eptr->sesdata->currentopstats[12]++;
@@ -3942,7 +3944,7 @@ void matoclserv_serve(int fd,int mask,void *data) {
 
 			eptr->chunkdelayedops = NULL;
 			eptr->sesdata = NULL;
-			eptr->cacheddirs = 0;
+			//eptr->cacheddirs = 0;
 			memset(eptr->passwordrnd,0,32);
 //			eptr->openedfiles = NULL;
 			
@@ -4200,7 +4202,7 @@ int matoclserv_networkinit(void) {
 	}
 
 	matoclservhead = NULL;
-	matoclserv_dircache_init();
+	//matoclserv_dircache_init();
 	main_timeregister(TIMEMODE_RUN_LATE,1,0,matoclserv_start_cond_check);
 	main_timeregister(TIMEMODE_RUN_LATE,10,0,matocl_session_check);
 	main_timeregister(TIMEMODE_RUN_LATE,3600,0,matocl_session_statsmove);
