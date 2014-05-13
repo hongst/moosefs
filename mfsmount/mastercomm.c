@@ -1307,8 +1307,8 @@ void* fs_receive_thread(void *arg) {
 	uint8_t hdr[12];
 	threc *rec;
 	uint32_t cmd,size,packetid;
-	static uint8_t *notify_buff=NULL;
-	static uint32_t notify_buff_size=0;
+	//static uint8_t *notify_buff=NULL;
+	//static uint32_t notify_buff_size=0;
 	int r;
 
 	(void)arg;
@@ -1503,8 +1503,8 @@ void* fs_receive_thread(void *arg) {
 					put32bit(&p,old);
 					fs_notify_sendremoved(1,buf);
 				}
-			} */
-		}
+			}
+		}*/
 		if (rec->waiting) {
 			pthread_cond_signal(&(rec->cond));
 		}

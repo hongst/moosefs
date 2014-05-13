@@ -1821,7 +1821,7 @@ void matoclserv_fuse_setattr(matoclserventry *eptr,const uint8_t *data,uint32_t 
 		eptr->sesdata->currentopstats[2]++;
 	}
 	if (status==STATUS_OK) {
-		matoclserv_notify_attr(inode,attr,eptr);
+		//matoclserv_notify_attr(inode,attr,eptr);
 	}
 }
 
@@ -1892,7 +1892,7 @@ void matoclserv_fuse_truncate(matoclserventry *eptr,const uint8_t *data,uint32_t
 		eptr->sesdata->currentopstats[2]++;
 	}
 	if (status==STATUS_OK) {
-		matoclserv_notify_attr(inode,attr,eptr);
+		//matoclserv_notify_attr(inode,attr,eptr);
 	}
 }
 
@@ -1980,7 +1980,7 @@ void matoclserv_fuse_symlink(matoclserventry *eptr,const uint8_t *data,uint32_t 
 		eptr->sesdata->currentopstats[6]++;
 	}
 	if (status==STATUS_OK) {
-		matoclserv_notify_dir(inode);
+		//matoclserv_notify_dir(inode);
 	}
 }
 
@@ -2029,7 +2029,7 @@ void matoclserv_fuse_mknod(matoclserventry *eptr,const uint8_t *data,uint32_t le
 		eptr->sesdata->currentopstats[8]++;
 	}
 	if (status==STATUS_OK) {
-		matoclserv_notify_dir(inode);
+		//matoclserv_notify_dir(inode);
 	}
 }
 
@@ -2081,7 +2081,7 @@ void matoclserv_fuse_mkdir(matoclserventry *eptr,const uint8_t *data,uint32_t le
 		eptr->sesdata->currentopstats[4]++;
 	}
 	if (status==STATUS_OK) {
-		matoclserv_notify_dir(inode);
+		//matoclserv_notify_dir(inode);
 	}
 }
 
@@ -2118,7 +2118,7 @@ void matoclserv_fuse_unlink(matoclserventry *eptr,const uint8_t *data,uint32_t l
 		eptr->sesdata->currentopstats[9]++;
 	}
 	if (status==STATUS_OK) {
-		matoclserv_notify_dir(inode);
+		//matoclserv_notify_dir(inode);
 	}
 }
 
@@ -2155,7 +2155,7 @@ void matoclserv_fuse_rmdir(matoclserventry *eptr,const uint8_t *data,uint32_t le
 		eptr->sesdata->currentopstats[5]++;
 	}
 	if (status==STATUS_OK) {
-		matoclserv_notify_dir(inode);
+		//matoclserv_notify_dir(inode);
 	}
 }
 
@@ -2212,8 +2212,8 @@ void matoclserv_fuse_rename(matoclserventry *eptr,const uint8_t *data,uint32_t l
 		eptr->sesdata->currentopstats[10]++;
 	}
 	if (status==STATUS_OK) {
-		matoclserv_notify_dir(inode_src);
-		matoclserv_notify_dir(inode_dst);
+		//matoclserv_notify_dir(inode_src);
+		//matoclserv_notify_dir(inode_dst);
 	}
 }
 
@@ -2259,7 +2259,7 @@ void matoclserv_fuse_link(matoclserventry *eptr,const uint8_t *data,uint32_t len
 		eptr->sesdata->currentopstats[11]++;
 	}
 	if (status==STATUS_OK) {
-		matoclserv_notify_dir(inode_dst);
+		//matoclserv_notify_dir(inode_dst);
 	}
 }
 
@@ -2305,7 +2305,7 @@ void matoclserv_fuse_getdir(matoclserventry *eptr,const uint8_t *data,uint32_t l
 		eptr->sesdata->currentopstats[12]++;
 	}
 }
-
+/*
 void matoclserv_fuse_dir_removed(matoclserventry *eptr,const uint8_t *data,uint32_t length) {
 	uint32_t inode;
 	if (length%4!=0) {
@@ -2329,7 +2329,7 @@ void matoclserv_fuse_dir_removed(matoclserventry *eptr,const uint8_t *data,uint3
 		}
 	}
 }
-
+*/
 void matoclserv_fuse_open(matoclserventry *eptr,const uint8_t *data,uint32_t length) {
 	uint32_t inode,uid,gid,auid,agid;
 	uint8_t flags;
@@ -2517,7 +2517,7 @@ void matoclserv_fuse_write_chunk_end(matoclserventry *eptr,const uint8_t *data,u
 	put32bit(&ptr,msgid);
 	put8bit(&ptr,status);
 	if (status==STATUS_OK) {
-		matoclserv_notify_attr(inode,NULL,eptr);
+		//matoclserv_notify_attr(inode,NULL,eptr);
 	}
 }
 
@@ -2548,7 +2548,7 @@ void matoclserv_fuse_repair(matoclserventry *eptr,const uint8_t *data,uint32_t l
 		put32bit(&ptr,chunksrepaired);
 	}
 	if (status==STATUS_OK) {
-		matoclserv_notify_attr(inode,NULL,eptr);
+		//matoclserv_notify_attr(inode,NULL,eptr);
 	}
 }
 
@@ -3015,7 +3015,7 @@ void matoclserv_fuse_append(matoclserventry *eptr,const uint8_t *data,uint32_t l
 	put32bit(&ptr,msgid);
 	put8bit(&ptr,status);
 	if (status == STATUS_OK) {
-		matoclserv_notify_attr(inode,NULL,eptr);
+		//matoclserv_notify_attr(inode,NULL,eptr);
 	}
 }
 
@@ -3052,8 +3052,8 @@ void matoclserv_fuse_snapshot(matoclserventry *eptr,const uint8_t *data,uint32_t
 	ptr = matoclserv_createpacket(eptr,MATOCL_FUSE_SNAPSHOT,5);
 	put32bit(&ptr,msgid);
 	put8bit(&ptr,status);
-	if (status == STATUS_OK) 
-		matoclserv_notify_dir(inode_dst);
+	//if (status == STATUS_OK) 
+		//matoclserv_notify_dir(inode_dst);
 }
 
 void matoclserv_fuse_quotacontrol(matoclserventry *eptr,const uint8_t *data,uint32_t length) {
@@ -3436,7 +3436,7 @@ void matocl_beforedisconnect(matoclserventry *eptr) {
 			eptr->sesdata->disconnected = main_time();
 		}
 	}
-	matoclserv_notify_disconnected(eptr);
+	//matoclserv_notify_disconnected(eptr);
 }
 
 void matoclserv_gotpacket(matoclserventry *eptr,uint32_t type,const uint8_t *data,uint32_t length) {
@@ -3553,9 +3553,9 @@ void matoclserv_gotpacket(matoclserventry *eptr,uint32_t type,const uint8_t *dat
 			case CLTOMA_FUSE_GETDIR:
 				matoclserv_fuse_getdir(eptr,data,length);
 				break;
-			case CLTOMA_FUSE_DIR_REMOVED:
-				matoclserv_fuse_dir_removed(eptr,data,length);
-				break;
+			//case CLTOMA_FUSE_DIR_REMOVED:
+			//	matoclserv_fuse_dir_removed(eptr,data,length);
+			//	break;
 			case CLTOMA_FUSE_OPEN:
 				matoclserv_fuse_open(eptr,data,length);
 				break;
