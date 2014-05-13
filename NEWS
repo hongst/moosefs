@@ -1,6 +1,28 @@
 This file lists noteworthy changes in MooseFS.
 
-* MooseFS 1.6.27 (2012-08-09)
+* MooseFS 1.6.27-5 (2013-11-26)
+
+  - (master) changed algoritm of choosing servers for write new chunks
+
+* MooseFS 1.6.27-4 (2013-11-19)
+
+  - (mount) fixed very rare segfault
+
+* MooseFS 1.6.27-3 (2013-10-16)
+
+  - (metarestore) removed internal debug output
+  - (metarestore) added percent of progress
+
+* MooseFS 1.6.27-2 (2013-10-02)
+
+  - (master) limiting chunkserver disconnections
+
+* MooseFS 1.6.27-1 (2012-08-09)
+
+  - (metarestore) bug fixed
+  - (master) small port bug fixed
+
+* MooseFS 1.6.27 (2012-02-24)
 
   - (mfsrestore) fixed bug - freeing filenames memory too early
   - (all) added initial support for extra attributes (xattr), which will be introduced in upcoming version 1.7

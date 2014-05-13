@@ -285,8 +285,8 @@ void mfs_meta_statfs(fuse_req_t req) {
 
 /*
 void mfs_meta_access(fuse_req_t req, fuse_ino_t ino, int mask) {
-	const struct fuse_ctx *ctx;
-	ctx = fuse_req_ctx(req);
+	struct fuse_ctx ctx;
+	ctx = *(fuse_req_ctx(req));
 	switch (ino) {
 		case FUSE_ROOT_ID:
 			if (mask & W_OK) {
@@ -295,7 +295,7 @@ void mfs_meta_access(fuse_req_t req, fuse_ino_t ino, int mask) {
 			}
 			break;
 		case META_TRASH_INODE:
-			if (mask & W_OK && ctx->uid!=0) {
+			if (mask & W_OK && ctx.uid!=0) {
 				fuse_reply_err(req,EACCES);
 				return;
 			}
@@ -314,8 +314,8 @@ void mfs_meta_access(fuse_req_t req, fuse_ino_t ino, int mask) {
 void mfs_meta_lookup(fuse_req_t req, fuse_ino_t parent, const char *name) {
 	struct fuse_entry_param e;
 	uint32_t inode;
-//	const struct fuse_ctx *ctx;
-//	ctx = fuse_req_ctx(req);
+//	struct fuse_ctx ctx;
+//	ctx = *(fuse_req_ctx(req));
 	memset(&e, 0, sizeof(e));
 	inode = 0;
 	switch (parent) {

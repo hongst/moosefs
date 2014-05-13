@@ -828,9 +828,9 @@ int restore(const char *filename,uint64_t lv,char *ptr) {
 			printf("hole in change files (entries from %s:%"PRIu64" to %s:%"PRIu64" are missing) - add more files\n",lastfn,lastv+1,filename,lv-1);
 			return -2;
 		} else {
-			if (vlevel>0) {
-				printf("%s: change%s",filename,ptr);
-			}
+//			if (vlevel>0) {
+//				printf("%s: change%s",filename,ptr);
+//			}
 			status = restore_line(filename,lv,ptr);
 			if (status<0) { // parse error - just ignore this line
 				return 0;
