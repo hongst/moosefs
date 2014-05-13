@@ -193,6 +193,7 @@ int main(int argc,char **argv) {
 	char *appname = argv[0];
 	uint32_t dplen = 0;
 	uint64_t firstlv,lastlv;
+	uint64_t maxlastlv = 0;
 
 	strerr_init();
 
@@ -385,11 +386,14 @@ int main(int argc,char **argv) {
 					files--;
 				} else {
 					pos++;
+					if (lastlv>maxlastlv) {
+						maxlastlv=lastlv;
+					}
 				}
 			}
 		}
 		closedir(dd);
-		merger_start(files,filenames,MAXIDHOLE);
+		merger_start(files,filenames,MAXIDHOLE,maxlastlv);
 		for (pos = 0 ; pos<files ; pos++) {
 			free(filenames[pos]);
 		}
@@ -424,9 +428,12 @@ int main(int argc,char **argv) {
 			if (skip==0) {
 				filenames[files] = strdup(argv[pos]);
 				files++;
+				if (lastlv>maxlastlv) {
+					maxlastlv=lastlv;
+				}
 			}
 		}
-		merger_start(files,filenames,MAXIDHOLE);
+		merger_start(files,filenames,MAXIDHOLE,maxlastlv);
 		for (pos = 0 ; pos<files ; pos++) {
 			free(filenames[pos]);
 		}

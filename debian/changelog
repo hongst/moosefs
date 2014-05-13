@@ -1,3 +1,35 @@
+mfs (1.6.27-5) unstable; urgency=medium
+
+  * (master) changed algoritm of choosing servers for write new chunks
+
+ -- Jakub Bogusz <contact@moosefs.com>  Tue, 26 Nov 2013 12:00:00 +0200
+
+mfs (1.6.27-4) unstable; urgency=medium
+
+  * (mount) fixed very rare segfault
+
+ -- Jakub Bogusz <contact@moosefs.com>  Tue, 19 Nov 2013 19:00:00 +0200
+
+mfs (1.6.27-3) unstable; urgency=medium
+
+  * (metarestore) removed internal debug output
+  * (metarestore) added percent of progress
+
+ -- Jakub Bogusz <contact@moosefs.com>  Thu, 16 Oct 2013 19:00:00 +0200
+
+mfs (1.6.27-2) unstable; urgency=medium
+
+  * (master) limiting chunkserver disconnections
+
+ -- Jakub Bogusz <contact@moosefs.com>  Thu, 02 Oct 2013 12:00:00 +0200
+
+mfs (1.6.27-1) unstable; urgency=medium
+
+  * (metarestore) bug fixed
+  * (master) small port bug fixed
+
+ -- Jakub Bogusz <contact@moosefs.com>  Thu, 09 Aug 2012 12:00:00 +0200
+
 mfs (1.6.27) unstable; urgency=medium
 
   * (mfsrestore) fixed bug - freeing filenames memory too early
@@ -37,7 +69,7 @@ mfs (1.6.27) unstable; urgency=medium
   * (debian) separated -cgiserv subpackage from -cgi (-cgi can be used
     with any CGI-capable HTTP server); added init script for mfscgiserv
 
- -- Jakub Bogusz <contact@moosefs.com>  Thu, 09 Aug 2012 12:00:00 +0200
+ -- Jakub Bogusz <contact@moosefs.com>  Thu, 24 Feb 2012 12:00:00 +0100
 
 mfs (1.6.26) unstable; urgency=medium
 

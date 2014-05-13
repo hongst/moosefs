@@ -8973,7 +8973,7 @@ int fs_auto_restore(void) {
     uint32_t files,pos;
     char **filenames;
     char *metadata = "metadata.mfs.back";
-    uint64_t firstlv,lastlv,skip;
+    uint64_t firstlv,lastlv,skip,maxlastlv=0;
 
     if (stat(metadata, &metast)<0 && errno==ENOENT) {
         metadata = "metadata_ml.mfs.back";
@@ -9024,11 +9024,14 @@ int fs_auto_restore(void) {
                 files--;
             } else {
                 pos++;
+                if (lastlv>maxlastlv) {
+                  maxlastlv = lastlv;
+                }
             }
         }
     }
     closedir(dd);
-    merger_start(files,filenames,2);
+    merger_start(files,filenames,2,maxlastlv);
     for (pos=0; pos<files; pos++) {
         free(filenames[pos]);
     }
