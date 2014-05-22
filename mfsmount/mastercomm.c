@@ -1666,13 +1666,18 @@ uint8_t fs_access(uint32_t inode,uint32_t uid,uint32_t gid,uint8_t modemask) {
 uint8_t fs_getdir_plus(uint32_t inode,uint32_t uid,uint32_t gid,uint8_t addtocache,const uint8_t **dbuff,uint32_t *dbuffsize);
 
 uint8_t fs_lookup(uint32_t parent,uint8_t nleng,const uint8_t *name,uint32_t uid,uint32_t gid,uint32_t *inode,uint8_t attr[35]) {
-	uint8_t *wptr;
+	uint8_t *wptr, *ptr;
 	const uint8_t *rptr;
 	uint32_t i;
 	uint32_t t32;
 	uint8_t ret;
 	uint32_t now;
 	if (dcache_lookup(parent,nleng,name,inode,attr)) {
+		if (sesflags&SESFLAG_MAPALL) {
+			ptr = &attr[3];
+			put32bit(&ptr,uid);
+			put32bit(&ptr,gid);
+		}
 		return *inode?STATUS_OK:ERROR_ENOENT;
 	}
 	now = time(NULL);
@@ -1684,6 +1689,11 @@ uint8_t fs_lookup(uint32_t parent,uint8_t nleng,const uint8_t *name,uint32_t uid
 		if (fs_getdir_plus(parent,uid,gid,1,&dbuff,&dsize)==STATUS_OK) {
 			free((void*)dbuff);
 			if (dcache_lookup(parent,nleng,name,inode,attr)) {
+				if (sesflags&SESFLAG_MAPALL) {
+					ptr = &attr[3];
+					put32bit(&ptr,uid);
+					put32bit(&ptr,gid);
+				}
 				return *inode?STATUS_OK:ERROR_ENOENT;
 			}
 		}
@@ -1726,11 +1736,11 @@ uint8_t fs_getattr(uint32_t inode,uint32_t uid,uint32_t gid,uint8_t attr[35]) {
 	uint32_t i;
 	uint8_t ret;
 	if (dcache_getattr(inode,attr)) {
-	    if (sesflags&SESFLAG_MAPALL) {
-	        ptr = &attr[3];
-	        put32bit(&ptr,uid);
-	        put32bit(&ptr,gid);
-	    }
+		if (sesflags&SESFLAG_MAPALL) {
+			ptr = &attr[3];
+			put32bit(&ptr,uid);
+			put32bit(&ptr,gid);
+		}
 		return STATUS_OK;
 	}
 	threc *rec = fs_get_my_threc();
