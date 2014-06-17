@@ -168,7 +168,7 @@ static uint32_t stats_prcvd = 0;
 static uint32_t stats_psent = 0;
 static uint64_t stats_brcvd = 0;
 static uint64_t stats_bsent = 0;
-static uint64_t stats_notify = 0;
+//static uint64_t stats_notify = 0;
 
 void matoclserv_stats(uint64_t stats[5]) {
 	stats[0] = stats_prcvd;

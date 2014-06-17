@@ -1034,7 +1034,7 @@ int chunk_multi_modify(uint64_t *nchunkid,uint64_t ochunkid,uint8_t goal,uint8_t
 
 	if (ochunkid==0) {	// new chunk
 //		servcount = matocsserv_getservers_ordered(ptrs,MINMAXRND,NULL,NULL);
-		servcount = matocsserv_getservers_wrandom(ptrs,AcceptableDifference/2.0,goal);
+		servcount = matocsserv_getservers_wrandom(ptrs,goal);
 		if (servcount==0) {
 			uint16_t uscount,tscount;
 			double minusage,maxusage;
@@ -2841,12 +2841,12 @@ void chunk_reload(void) {
 		}
 	}
 
-	AcceptableDifference = cfg_getdouble("ACCEPTABLE_DIFFERENCE",0.05);
-	if (AcceptableDifference<0.01) {
-		AcceptableDifference = 0.01;
+	AcceptableDifference = cfg_getdouble("ACCEPTABLE_DIFFERENCE",0.1);
+	if (AcceptableDifference<0.001) {
+		AcceptableDifference = 0.001;
 	}
-	if (AcceptableDifference>0.1) {
-		AcceptableDifference = 0.1;
+	if (AcceptableDifference>10.0) {
+		AcceptableDifference = 10.0;
 	}
 }
 #endif
@@ -2919,12 +2919,12 @@ int chunk_strinit(void) {
 			HashCPS = MAXCPS;
 		}
 	}
-	AcceptableDifference = cfg_getdouble("ACCEPTABLE_DIFFERENCE",0.05);
-	if (AcceptableDifference<0.01) {
-		AcceptableDifference = 0.01;
+	AcceptableDifference = cfg_getdouble("ACCEPTABLE_DIFFERENCE",0.1);
+	if (AcceptableDifference<0.001) {
+		AcceptableDifference = 0.001;
 	}
-	if (AcceptableDifference>0.1) {
-		AcceptableDifference = 0.1;
+	if (AcceptableDifference>10.0) {
+		AcceptableDifference = 10.0;
 	}
 #endif
 	for (i=0 ; i<HASHSIZE ; i++) {
