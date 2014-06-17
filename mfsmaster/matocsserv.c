@@ -46,7 +46,6 @@
 #include "hashfn.h"
 #include "event.h"
 #include "filesystem.h"
-#include "median.h"
 
 #define MaxPacketSize 500000000
 
@@ -91,6 +90,7 @@ typedef struct matocsserventry {
 	struct matocsserventry *next;
 } matocsserventry;
 
+static uint64_t maxtotalspace;
 static matocsserventry *matocsservhead=NULL;
 static matocsserventry *writable[MFSMAXFILES+1];
 static int lsock;
@@ -581,74 +581,30 @@ int matocsserv_carry_compare(const void *a,const void *b) {
 	return 0;
 }
 
-uint16_t matocsserv_getservers_wrandom(void* ptrs[65536],double tolerance,uint16_t demand) {
+uint16_t matocsserv_getservers_wrandom(void* ptrs[65536],uint16_t demand) {
 	static struct rservsort {
 		double w;
 		double carry;
 		matocsserventry *ptr;
 	} servtab[65536];
-	double servmed[65536];
-	double median,m;
 	matocsserventry *eptr;
-	uint64_t maxtotalspace;
 	double carry;
 	uint32_t i;
 	uint32_t allcnt;
 	uint32_t availcnt;
-	uint32_t mediancnt;
-	uint8_t useonlymedian;
-
-	/* find max total space */
-	maxtotalspace = 0;
-	for (eptr = matocsservhead ; eptr ; eptr=eptr->next) {
-		if ((eptr->mode==HEADER || eptr->mode==DATA) && eptr->totalspace > maxtotalspace) {
-			maxtotalspace = eptr->totalspace;
-		}
-	}
-
 	if (maxtotalspace==0) {
 		return 0;
-	}
-
-	/* find median usage */
-	allcnt=0;
-	for (eptr = matocsservhead ; eptr && allcnt<65536 ; eptr=eptr->next) {
-		if (eptr->mode!=KILL && eptr->totalspace>0 && eptr->usedspace<=eptr->totalspace && (eptr->totalspace - eptr->usedspace)>MFSCHUNKSIZE) {
-			servmed[allcnt] = (double)(eptr->usedspace)/(double)(eptr->totalspace);
-			allcnt++;
-		}
-	}
-	useonlymedian = 0;
-	if (allcnt>=5) {
-		median = median_find(servmed,allcnt);
-		mediancnt = 0;
-		for (eptr = matocsservhead ; eptr && allcnt<65536 ; eptr=eptr->next) {
-			if (eptr->mode!=KILL && eptr->totalspace>0 && eptr->usedspace<=eptr->totalspace && (eptr->totalspace - eptr->usedspace)>MFSCHUNKSIZE) {
-				m = (double)(eptr->usedspace)/(double)(eptr->totalspace);
-				if (m > median - tolerance && m < median + tolerance) {
-					mediancnt++;
-				}
-			}
-		}
-		if (mediancnt * 3 > allcnt * 2) {
-			useonlymedian = 1;
-		}
-	} else {
-		median = 0.0; // make compiler happy
 	}
 	allcnt=0;
 	availcnt=0;
 	for (eptr = matocsservhead ; eptr && allcnt<65536 ; eptr=eptr->next) {
 		if (eptr->mode!=KILL && eptr->totalspace>0 && eptr->usedspace<=eptr->totalspace && (eptr->totalspace - eptr->usedspace)>MFSCHUNKSIZE) {
-			m = (double)(eptr->usedspace)/(double)(eptr->totalspace);
-			if (useonlymedian==0 || (m > median - tolerance && m < median + tolerance)) {
-				servtab[allcnt].w = (double)eptr->totalspace/(double)maxtotalspace;
-				servtab[allcnt].carry = eptr->carry;
-				servtab[allcnt].ptr = eptr;
-				allcnt++;
-				if (eptr->carry>=1.0) {
-					availcnt++;
-				}
+			servtab[allcnt].w = (double)eptr->totalspace/(double)maxtotalspace;
+			servtab[allcnt].carry = eptr->carry;
+			servtab[allcnt].ptr = eptr;
+			allcnt++;
+			if (eptr->carry>=1.0) {
+				availcnt++;
 			}
 		}
 	}
@@ -659,9 +615,6 @@ uint16_t matocsserv_getservers_wrandom(void* ptrs[65536],double tolerance,uint16
 		availcnt=0;
 		for (i=0 ; i<allcnt ; i++) {
 			carry = servtab[i].carry + servtab[i].w;
-			if (carry>10.0) {
-				carry = 10.0;
-			}
 			servtab[i].carry = carry;
 			servtab[i].ptr->carry = carry;
 			if (carry>=1.0) {
@@ -1540,6 +1493,9 @@ void matocsserv_register(matocsserventry *eptr,const uint8_t *data,uint32_t leng
 			eptr->todelusedspace = get64bit(&data);
 			eptr->todeltotalspace = get64bit(&data);
 			eptr->todelchunkscount = get32bit(&data);
+			if (eptr->totalspace>maxtotalspace) {
+				maxtotalspace=eptr->totalspace;
+			}
 			us = (double)(eptr->usedspace)/(double)(1024*1024*1024);
 			ts = (double)(eptr->totalspace)/(double)(1024*1024*1024);
 			syslog(LOG_NOTICE,"chunkserver register end (packet version: 5) - ip: %s, port: %"PRIu16", usedspace: %"PRIu64" (%.2lf GiB), totalspace: %"PRIu64" (%.2lf GiB)",eptr->servstrip,eptr->servport,eptr->usedspace,us,eptr->totalspace,ts);
@@ -1569,6 +1525,9 @@ void matocsserv_register(matocsserventry *eptr,const uint8_t *data,uint32_t leng
 			syslog(LOG_NOTICE,"chunkserver connected using localhost (IP: %s) - you cannot use localhost for communication between chunkserver and master", eptr->servstrip);
 			eptr->mode=KILL;
 			return;
+		}
+		if (eptr->totalspace>maxtotalspace) {
+			maxtotalspace=eptr->totalspace;
 		}
 		us = (double)(eptr->usedspace)/(double)(1024*1024*1024);
 		ts = (double)(eptr->totalspace)/(double)(1024*1024*1024);
@@ -1600,6 +1559,9 @@ void matocsserv_space(matocsserventry *eptr,const uint8_t *data,uint32_t length)
 	passert(data);
 	eptr->usedspace = get64bit(&data);
 	eptr->totalspace = get64bit(&data);
+	if (eptr->totalspace>maxtotalspace) {
+		maxtotalspace=eptr->totalspace;
+	}
 	if (length==40) {
 		eptr->chunkscount = get32bit(&data);
 	}
