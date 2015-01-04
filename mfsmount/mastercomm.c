@@ -223,7 +223,7 @@ uint32_t fs_get_acnt(uint32_t inode) {
 }
 */
 
-/*
+
 void fs_notify_attr(const uint8_t *buff,uint32_t size) {
 	uint32_t dirnode, inode;
 	while (size>=43) {
@@ -327,7 +327,7 @@ void fs_notify_sendremoved(uint32_t cnt,uint32_t *inodes) {
 	lastwrite = time(NULL);
 	pthread_mutex_unlock(&fdlock);
 }
-*/
+
 void fs_inc_acnt(uint32_t inode) {
 	acquired_file *afptr,**afpptr;
 	pthread_mutex_lock(&aflock);
@@ -1307,8 +1307,8 @@ void* fs_receive_thread(void *arg) {
 	uint8_t hdr[12];
 	threc *rec;
 	uint32_t cmd,size,packetid;
-	//static uint8_t *notify_buff=NULL;
-	//static uint32_t notify_buff_size=0;
+	static uint8_t *notify_buff=NULL;
+	static uint32_t notify_buff_size=0;
 	int r;
 
 	(void)arg;
@@ -1320,7 +1320,7 @@ void* fs_receive_thread(void *arg) {
 		}
 		if (disconnect) {
 //			dir_cache_remove_all();
-//			dcache_remove_all();
+			dcache_remove_all();
 			tcpclose(fd);
 			fd=-1;
 			disconnect=0;
@@ -1392,7 +1392,6 @@ void* fs_receive_thread(void *arg) {
 			if (cmd==ANTOAN_UNKNOWN_COMMAND || cmd==ANTOAN_BAD_COMMAND_SIZE) { // just ignore these packets with packetid==0
 				continue;
 			}
-			/*
 			if (cmd==MATOCL_FUSE_NOTIFY_ATTR || cmd==MATOCL_FUSE_NOTIFY_DIR) {
 				if (size>DEFAULT_INPUT_BUFFSIZE) {
 #ifdef MMAP_ALLOC
@@ -1451,7 +1450,6 @@ void* fs_receive_thread(void *arg) {
 				}
 				continue;
 			}
-			*/
 		}
 		rec = fs_get_threc_by_id(packetid);
 		if (rec==NULL) {
@@ -1490,7 +1488,7 @@ void* fs_receive_thread(void *arg) {
 		rec->rcvd_cmd = cmd;
 		// syslog(LOG_NOTICE,"master: unlock: %"PRIu32,rec->packetid);
 		rec->rcvd = 1;
-/*		if (cmd==MATOCL_FUSE_GETDIR) {
+		if (cmd==MATOCL_FUSE_GETDIR) {
 			const uint8_t *tptr = rec->obuff+12; // HACK
 			uint32_t inode = get32bit(&tptr);
 			uint8_t flag = tptr[8];
@@ -1504,7 +1502,7 @@ void* fs_receive_thread(void *arg) {
 					fs_notify_sendremoved(1,buf);
 				}
 			}
-		}*/
+		}
 		if (rec->waiting) {
 			pthread_cond_signal(&(rec->cond));
 		}
@@ -1515,7 +1513,7 @@ void* fs_receive_thread(void *arg) {
 // called before fork
 int fs_init_master_connection(const char *bindhostname,const char *masterhostname,const char *masterportname,uint8_t meta,const char *info,const char *subfolder,const uint8_t passworddigest[16],uint8_t donotrememberpassword,uint8_t bgregister) {
 	master_statsptr_init();
-	//dcache_init();
+	dcache_init();
 
 	fd = -1;
 	sessionlost = bgregister;
@@ -1668,13 +1666,18 @@ uint8_t fs_access(uint32_t inode,uint32_t uid,uint32_t gid,uint8_t modemask) {
 uint8_t fs_getdir_plus(uint32_t inode,uint32_t uid,uint32_t gid,uint8_t addtocache,const uint8_t **dbuff,uint32_t *dbuffsize);
 
 uint8_t fs_lookup(uint32_t parent,uint8_t nleng,const uint8_t *name,uint32_t uid,uint32_t gid,uint32_t *inode,uint8_t attr[35]) {
-	uint8_t *wptr;
+	uint8_t *wptr, *ptr;
 	const uint8_t *rptr;
 	uint32_t i;
 	uint32_t t32;
 	uint8_t ret;
 	uint32_t now;
-/*	if (dcache_lookup(parent,nleng,name,inode,attr)) {
+	if (dcache_lookup(parent,nleng,name,inode,attr)) {
+		if (sesflags&SESFLAG_MAPALL) {
+			ptr = &attr[3];
+			put32bit(&ptr,uid);
+			put32bit(&ptr,gid);
+		}
 		return *inode?STATUS_OK:ERROR_ENOENT;
 	}
 	now = time(NULL);
@@ -1686,12 +1689,17 @@ uint8_t fs_lookup(uint32_t parent,uint8_t nleng,const uint8_t *name,uint32_t uid
 		if (fs_getdir_plus(parent,uid,gid,1,&dbuff,&dsize)==STATUS_OK) {
 			free((void*)dbuff);
 			if (dcache_lookup(parent,nleng,name,inode,attr)) {
+				if (sesflags&SESFLAG_MAPALL) {
+					ptr = &attr[3];
+					put32bit(&ptr,uid);
+					put32bit(&ptr,gid);
+				}
 				return *inode?STATUS_OK:ERROR_ENOENT;
 			}
 		}
 	}
 	lookup_stats[parent % LOOKUP_STAT_SIZE] = parent;
-*/
+
 	threc *rec = fs_get_my_threc();
 	wptr = fs_createpacket(rec,CLTOMA_FUSE_LOOKUP,13+nleng);
 	if (wptr==NULL) {
@@ -1727,14 +1735,14 @@ uint8_t fs_getattr(uint32_t inode,uint32_t uid,uint32_t gid,uint8_t attr[35]) {
 	const uint8_t *rptr;
 	uint32_t i;
 	uint8_t ret;
-/*	if (dcache_getattr(inode,attr)) {
-	    if (sesflags&SESFLAG_MAPALL) {
-	        ptr = &attr[3];
-	        put32bit(&ptr,uid);
-	        put32bit(&ptr,gid);
-	    }
+	if (dcache_getattr(inode,attr)) {
+		if (sesflags&SESFLAG_MAPALL) {
+			ptr = &attr[3];
+			put32bit(&ptr,uid);
+			put32bit(&ptr,gid);
+		}
 		return STATUS_OK;
-	} */
+	}
 	threc *rec = fs_get_my_threc();
 	wptr = fs_createpacket(rec,CLTOMA_FUSE_GETATTR,12);
 	if (wptr==NULL) {
@@ -1799,7 +1807,7 @@ uint8_t fs_setattr(uint32_t inode,uint32_t uid,uint32_t gid,uint8_t setmask,uint
 	} else {
 		memcpy(attr,rptr,35);
 		ret = STATUS_OK;
-		//dcache_setattr(0,inode,attr);
+		dcache_setattr(0,inode,attr);
 	}
 	return ret;
 }
@@ -1832,7 +1840,7 @@ uint8_t fs_truncate(uint32_t inode,uint8_t opened,uint32_t uid,uint32_t gid,uint
 	} else {
 		memcpy(attr,rptr,35);
 		ret = STATUS_OK;
-		//dcache_setattr(0,inode,attr);
+		dcache_setattr(0,inode,attr);
 	}
 	return ret;
 }
@@ -1912,7 +1920,7 @@ uint8_t fs_symlink(uint32_t parent,uint8_t nleng,const uint8_t *name,const uint8
 		*inode = t32;
 		memcpy(attr,rptr,35);
 		ret = STATUS_OK;
-		//dcache_remove(parent);
+		dcache_remove(parent);
 	}
 	return ret;
 }
@@ -1952,7 +1960,7 @@ uint8_t fs_mknod(uint32_t parent,uint8_t nleng,const uint8_t *name,uint8_t type,
 		*inode = t32;
 		memcpy(attr,rptr,35);
 		ret = STATUS_OK;
-		//dcache_remove(parent);
+		dcache_remove(parent);
 	}
 	return ret;
 }
@@ -1997,7 +2005,7 @@ uint8_t fs_mkdir(uint32_t parent,uint8_t nleng,const uint8_t *name,uint16_t mode
 		*inode = t32;
 		memcpy(attr,rptr,35);
 		ret = STATUS_OK;
-		//dcache_remove(parent);
+		dcache_remove(parent);
 	}
 	return ret;
 }
@@ -2024,7 +2032,7 @@ uint8_t fs_unlink(uint32_t parent,uint8_t nleng,const uint8_t *name,uint32_t uid
 	} else if (i==1) {
 		ret = rptr[0];
 		if (ret == STATUS_OK) {
-			//dcache_remove(parent);
+			dcache_remove(parent);
 		}
 	} else {
 		pthread_mutex_lock(&fdlock);
@@ -2057,7 +2065,7 @@ uint8_t fs_rmdir(uint32_t parent,uint8_t nleng,const uint8_t *name,uint32_t uid,
 	} else if (i==1) {
 		ret = rptr[0];
 		if (ret == STATUS_OK) {
-			//dcache_remove(parent);
+			dcache_remove(parent);
 		}
 	} else {
 		pthread_mutex_lock(&fdlock);
@@ -2106,8 +2114,8 @@ uint8_t fs_rename(uint32_t parent_src,uint8_t nleng_src,const uint8_t *name_src,
 		*inode = t32;
 		memcpy(attr,rptr,35);
 		ret = STATUS_OK;
-		//dcache_remove(parent_src);
-		//dcache_remove(parent_dst);
+		dcache_remove(parent_src);
+		dcache_remove(parent_dst);
 	}
 	return ret;
 }
@@ -2145,7 +2153,7 @@ uint8_t fs_link(uint32_t inode_src,uint32_t parent_dst,uint8_t nleng_dst,const u
 		*inode = t32;
 		memcpy(attr,rptr,35);
 		ret = STATUS_OK;
-		//dcache_remove(parent_dst);
+		dcache_remove(parent_dst);
 	}
 	return ret;
 }
@@ -2182,9 +2190,9 @@ uint8_t fs_getdir_plus(uint32_t inode,uint32_t uid,uint32_t gid,uint8_t addtocac
 	uint32_t i;
 	uint8_t ret;
 	uint8_t flags;
-/*	if (addtocache && dcache_getdir(inode,dbuff,dbuffsize)) {
+	if (addtocache && dcache_getdir(inode,dbuff,dbuffsize)) {
 		return STATUS_OK;
-	} */
+	}
 	threc *rec = fs_get_my_threc();
 	wptr = fs_createpacket(rec,CLTOMA_FUSE_GETDIR,13);
 	if (wptr==NULL) {
@@ -2194,9 +2202,9 @@ uint8_t fs_getdir_plus(uint32_t inode,uint32_t uid,uint32_t gid,uint8_t addtocac
 	put32bit(&wptr,uid);
 	put32bit(&wptr,gid);
 	flags = GETDIR_FLAG_WITHATTR;
-/*	if (addtocache) {
+	if (addtocache) {
 		flags |= GETDIR_FLAG_DIRCACHE;
-	}*/
+	}
 	put8bit(&wptr,flags);
 	rptr = fs_sendandreceive(rec,MATOCL_FUSE_GETDIR,&i);
 	if (rptr==NULL) {
